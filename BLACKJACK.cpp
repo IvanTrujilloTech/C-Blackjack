@@ -1,13 +1,20 @@
-#include <iostream>
+﻿#include <iostream>
 #include <random>
 #include <windows.h>
 #include <mmsystem.h>
 #include <string>
 #include <conio.h>
 #include <stdlib.h>
-#include <vector>
 #include <algorithm>
+#include <random>
+#include <cstdlib>
 #include <ctime>
+#include <string>
+
+
+
+
+
 
 bool firstRead = true;
 int selectedOption;
@@ -23,6 +30,7 @@ void esperar(int ms) {
         Sleep(ms);
     }
 }
+
 void title() {
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(hConsole, 2);
@@ -101,132 +109,186 @@ void menu() {
 		tutorial();
 	}
 }
+string repartidos[30]; 
+int repartidosIndex = 0;
+
+void repartirCarta(string& hand, int& deck_value, int playerType) {
+   
+    int opcionA;
+	string kind[] = { "Picas","Corazones","Treboles","Diamantes" };
+	string deck[] = { "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" };
+	int values[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11 };
+    string auxCard;
+    int randomCard = rand() % (12 + 1);
+	int randomKind = rand() % (3 + 1);
+    
+    
+    string kindRepartido = kind[randomKind];
+    string deckRepartido = deck[randomCard];
+
+	auxCard = deckRepartido + " de " + kindRepartido;
+    bool isRepartido = false;
+    isRepartido = find(begin(repartidos), end(repartidos), auxCard) != end(repartidos);
+    while (isRepartido)
+    {
+        // cout << "carta ya repartida";
+		randomCard = rand() % (12 + 1);
+		randomKind = rand() % (3 + 1);
+
+		kindRepartido = kind[randomKind];
+		deckRepartido = deck[randomCard];
+		auxCard = deckRepartido + " de " + kindRepartido;
+		isRepartido = find(begin(repartidos), end(repartidos), auxCard) != end(repartidos);
+    }
+    repartidos[repartidosIndex] = auxCard; repartidosIndex++;
+    //cout << endl << "REPARTIDOS : " << repartidos[0] << " " << repartidos[1] <<  " " << repartidos[2] << " " << repartidos[3] << " " << repartidos[4] << " " << repartidos[5] << endl;
+    if (playerType == 0) {
+        cout << "La carta del croupier es el " << deckRepartido << " de " << kindRepartido << endl;
+
+    }  
+    else {
+        cout << "Tu carta es el " << deckRepartido << " de " << kindRepartido << endl;
+
+    }
+    
+	
+
+    if (deckRepartido == "A" && playerType == 1) {
+        cout << "¿Quieres que tu " << deckRepartido << " de " << kindRepartido << "valga 1 o valga 11? : ";
+        int opcionA = NULL;
+        while (opcionA != 1 and opcionA != 11) {
+			cin >> opcionA;
+            switch (opcionA) {
+            case 1:
+                deck_value += 1;
+                break;
+            case 11:
+                deck_value += 11;
+                break;
+            default:
+                cout << "Opcion no valida";
+                break;
+            }
+        }
+    }
+    else if (deckRepartido == "A" && playerType == 0) {
+        deck_value += 11;
+    }
+    else if (deckRepartido != "A") {
+        deck_value += values[randomCard];
+    }
+}
+
+bool checkWin(int player_score, int dealer_score, bool player_wants_hit) {
+    cout << "~ Tienes " << player_score << " puntos ~\n";
+    cout << "~ El croupier tiene " << dealer_score << " puntos ~\n";
+    if (player_score == 21) {
+        cout << "¡Enhorabuena, has ganado!"<<endl;
+        return true;
+    }
+    else if (dealer_score == 21) {
+        cout << "¡Has perdido!"<<endl;
+        return true; 
+    }
+    else if (dealer_score>21 && player_score <=21) {
+        cout << "¡Enhorabuena, has ganado!"<<endl;
+        return true;
+    }
+    else if ((dealer_score > 21 && player_score > 21) || dealer_score == player_score) { //*//
+        cout << "Empate tecnico"<<endl; return true;
+    }
+
+    else if (dealer_score < player_score && player_score < 21 && player_wants_hit) {
+        cout << "¡Seguimos jugando!"<<endl; return false;
+    }
+    else if (dealer_score > player_score && dealer_score <= 21) {
+        cout << "¡Has perdido!"<<endl; return true;
+    }
+    
+    else if (dealer_score < player_score && player_score > 21) {
+        cout << "¡Te has pasado de 21!"<<endl; return true;
+    }
+    /*else if (player_score > dealer_score && player_score < 21 && !(player_wants_hit)) {
+        cout << "Has ganado!"; return true;
+    }*/
+}
 
 int main() {
+	srand(time(NULL));
     menu();
-    
     const int MAX_SCORE = 21;
     const int MAX_ACE = 4;
     //const int DEALER_MIN_SCORE = 17;
-
-    string deck[] = { "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" };
-    int values[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11 };
-    string kind[] = { "Picas","Corazones","Treboles","Diamantes" };
-    string player_hand[10]; string dealer_hand[10];
-    int player_score; int dealer_score;
+	
+    string player_hand[10];
+    string dealer_hand[10];
+    string card_option = "0";
+    int player_score = 0; 
+    int dealer_score = 0;
+    int turn = 1;
     int player_aces = 0;
     int dealer_aces = 0;
     bool player_wants_hit = true;
+    bool reached21 = false;
+    repartirCarta(*player_hand, player_score,1);
+    repartirCarta(*player_hand, player_score,1);
+	repartirCarta(*dealer_hand, dealer_score,0);
 
-    cout << "Tus cartas son: " << player_hand[0] << " y " << player_hand[1];
-    cout << "Las cartas del croupier son: " << dealer_hand[0] << " y " << dealer_hand[1];
-    string CARDS = ['''
-        ------ -
-        | K      |
-        |       |
-        |       |
-        |       |
-        |      K |
-        ------ - ''', '''
-        ------ -
-        | Q      |
-        |       |
-        |       |
-        |       |
-        |      Q |
-        ------ - ''', '''
-        ------ -
-        | J      |
-        |       |
-        |       |
-        |       |
-        |      J |
-        ------ - ''', '''
-        ------ -
-        | 10     |
-        |       |
-        |       |
-        |       |
-        |     10 |
-        ------ - ''', '''
-        ------ -
-        | 9      |
-        |       |
-        |       |
-        |       |
-        |      9 |
-        ------ - ''', '''
-        ------ -
-        | 8      |
-        |       |
-        |       |
-        |       |
-        |      8 |
-        ------ - ''', '''
-        ------ -
-        | 7      |
-        |       |
-        |       |
-        |       |
-        |      7 |
-        ------ - ''', '''
-        ------ -
-        | 6      |
-        |       |
-        |       |
-        |       |
-        |      6 |
-        ------ - ''', '''
-        ------ -
-        | 5      |
-        |       |
-        |       |
-        |       |
-        |      5 |
-        ------ - ''', '''
-        ------ -
-        | 6      |
-        |       |
-        |       |
-        |       |
-        |      6 |
-        ------ - ''', '''
-        ------ -
-        | 5      |
-        |       |
-        |       |
-        |       |
-        |      5 |
-        ------ - ''', '''
-        ------ -
-        | 4      |
-        |       |
-        |       |
-        |       |
-        |      4 |
-        ------ - ''', '''
-        ------ -
-        | 3      |
-        |       |
-        |       |
-        |       |
-        |      3 |
-        ------ - ''', '''
-        ------ -
-        | 2      |
-        |       |
-        |       |
-        |       |
-        |      2 |
-        ------ - ''', '''
-        ------ -
-        | A      |
-        |       |
-        |       |
-        |       |
-        |      A |
-        ------ - '''
-    ]
-    cout << CARDS[5];
+    cout << "~ Tienes " << player_score << " puntos ~\n";
+    cout << "~ El croupier tiene " << dealer_score << " puntos ~\n";
 
+    cout << "¿Quieres otra carta? (S/N) : ";
+    while (1) {
+        cin >> card_option;
+        if (card_option == "S" || card_option == "s" || card_option == "Si" || card_option == "si") {
+                repartirCarta(*player_hand, player_score, 1);
+                card_option == "0";
+                break;
+            }
+        else if (card_option == "N" || card_option == "n" || card_option == "No" || card_option == "no") {
+            repartirCarta(*dealer_hand, dealer_score, 0);
+            card_option == "0";
+            player_wants_hit = false;
+            if (dealer_score < player_score || dealer_score != 21) {
+                repartirCarta(*dealer_hand, dealer_score, 0);
+            }
+            break;
+        }
+    }
+
+    reached21 = checkWin(player_score,dealer_score,player_wants_hit);
+
+    while (!reached21) {
+    //  reached21 = checkWin(player_score,dealer_score);
+        if (!reached21 && player_wants_hit) {
+            cout << "¿Quieres otra carta? (S/N)";
+            player_wants_hit = true;
+            while (player_wants_hit) {
+                cin >> card_option;
+                if (card_option == "S" || card_option == "s" || card_option == "Si" || card_option == "si") {
+                    repartirCarta(*player_hand, player_score, 1);
+                    card_option = "0";
+                    reached21 = checkWin(player_score, dealer_score,player_wants_hit);
+                    break;
+                }
+                else if (card_option == "N" || card_option == "n") {
+                    reached21 = checkWin(player_score, dealer_score,player_wants_hit);
+                    player_wants_hit = false;
+                    break;
+                }
+            }
+            /*EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA 😡👊 EJECUTA*/
+        }
+        else if (!reached21 && !player_wants_hit) {
+            while(dealer_score<21) {
+                repartirCarta(*dealer_hand, dealer_score, 0);
+            }
+            reached21 = checkWin(player_score, dealer_score, player_wants_hit);
+        }
+        // if (!player_wants_hit) {
+        // checkWin(player_score, dealer_score, player_wants_hit);
+        // break;
+        // }
+    }
+    
 }
