@@ -5,7 +5,7 @@
 </p>
 
 ### Instalación y Ejecución
-· Descarga el fichero main.cpp
+· Descarga el fichero main.cpp y el fichero casino_music.wav en un mismo directorio
 · Compila el fichero
 ```sh
 g++ -o blackjack main.cpp
