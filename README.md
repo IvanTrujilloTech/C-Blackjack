@@ -14,3 +14,5 @@ g++ -o blackjack main.cpp
 ```sh
 ./blackjack
 ```
+### En Visual Studio
+· Descargar el fichero BLACKJACK.rar. Contiene los ficheros para ejecutarlo en Visual Studio.
