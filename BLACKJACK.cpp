@@ -11,9 +11,7 @@
 #include <ctime>
 #include <string>
 
-
-
-
+#pragma comment(lib, "winmm.lib")
 
 
 bool firstRead = true;
@@ -32,6 +30,7 @@ void esperar(int ms) {
 }
 
 void title() {
+    PlaySound(TEXT("casino_music.wav"), NULL, SND_FILENAME | SND_ASYNC);
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleTextAttribute(hConsole, 2);
 	cout << "\t\t .S_SSSs    S.       .S_SSSs      sSSs   .S    S.       .S   .S_SSSs      sSSs   .S    S.   \n";esperar(250);
@@ -67,14 +66,10 @@ void opciones(int option) {
 	esperar(1500);
 	firstRead = false;
 }
-void tutorial() {
-    cout << "\tEl croupier reparte una carta al jugador, y muestra el palo y el numero, si es un AS podras elegir entre el valor 1 u 11 y se anadiran los puntos al jugador\n";
-    cout << "\tEl croupier volvera a repartirte otra carta por segunda vez, y se repite el proceso. Una vez ya tengas dos cartas el croupier se repartira una cara a si mismo, si sale un AS, le dara un valor de 11 por defecto\n";
-    cout << "\tEl croupier de preguntara si quieres otra carta, si dices que si, se repite el proceso, si dices que no, el croupier se repartira una carta a si mismo\n";
-    cout << "\tSi el croupier se pasa, ganas tu. Si el croupier tiene mas puntuaje que tu sin pasarse de 21 gana el. Si teneis el mismo puntuaje, ganas tu\n";
-}
+void tutorial(); //forward declaration            
 
-void menu() {
+
+void menu(bool& startedGame) {
     int selectedOption = 1;
     int keyboardInput = 0;
     bool isSelected = false;
@@ -99,15 +94,37 @@ void menu() {
         case SPACE:
             isSelected = true;
         }
-        
-        
         system("CLS");
     }
-    //cout << selectedOption;
-	switch (selectedOption) {
-	case 2:
-		tutorial();
-	}
+    // cout << selectedOption;
+    switch (selectedOption) {
+    case 1:
+        startedGame = true;
+        break;
+    case 2:
+        tutorial();
+        break;
+    case 3:
+        exit(1);
+    }
+}
+void tutorial() {
+    cout << "\tEl croupier reparte una carta al jugador, y muestra el palo y el numero, si es un AS podras elegir entre el valor 1 u 11 y se anadiran los puntos al jugador\n";
+    Sleep(1000);
+    cout << "\tEl croupier volvera a repartirte otra carta por segunda vez, y se repite el proceso. Una vez ya tengas dos cartas el croupier se repartira una cara a si mismo, si sale un AS, le dara un valor de 11 por defecto\n";
+    Sleep(1000);
+    cout << "\tEl croupier de preguntara si quieres otra carta, si dices que si, se repite el proceso, si dices que no, el croupier se repartira una carta a si mismo\n";
+    Sleep(1000);
+    cout << "\tSi el croupier se pasa, ganas tu. Si el croupier tiene mas puntuaje que tu sin pasarse de 21 gana el. Si teneis el mismo puntuaje, ganas tu\n";
+    Sleep(3500);
+    cout << endl << endl << "Pulsa una tecla para volver al menu.";
+    int keyboardInput = 0;
+    switch ((keyboardInput = _getch())) {
+        default:
+            break;
+        }
+        system("CLS");
+        //  menu();
 }
 string repartidos[30]; 
 int repartidosIndex = 0;
@@ -119,8 +136,8 @@ void repartirCarta(string& hand, int& deck_value, int playerType) {
 	string deck[] = { "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" };
 	int values[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11 };
     string auxCard;
-    int randomCard = rand() % (12 + 1);
-	int randomKind = rand() % (3 + 1);
+    int randomCard = rand() %13;
+	int randomKind = rand() %4;
     
     
     string kindRepartido = kind[randomKind];
@@ -144,17 +161,17 @@ void repartirCarta(string& hand, int& deck_value, int playerType) {
     //cout << endl << "REPARTIDOS : " << repartidos[0] << " " << repartidos[1] <<  " " << repartidos[2] << " " << repartidos[3] << " " << repartidos[4] << " " << repartidos[5] << endl;
     if (playerType == 0) {
         cout << "La carta del croupier es el " << deckRepartido << " de " << kindRepartido << endl;
-
+        Sleep(1000);
     }  
     else {
         cout << "Tu carta es el " << deckRepartido << " de " << kindRepartido << endl;
-
+        Sleep(1000);
     }
     
 	
 
     if (deckRepartido == "A" && playerType == 1) {
-        cout << "¿Quieres que tu " << deckRepartido << " de " << kindRepartido << "valga 1 o valga 11? : ";
+        cout << "¿Quieres que tu " << deckRepartido << " de " << kindRepartido << " valga 1 o valga 11? : ";
         int opcionA = NULL;
         while (opcionA != 1 and opcionA != 11) {
 			cin >> opcionA;
@@ -181,41 +198,50 @@ void repartirCarta(string& hand, int& deck_value, int playerType) {
 
 bool checkWin(int player_score, int dealer_score, bool player_wants_hit) {
     cout << "~ Tienes " << player_score << " puntos ~\n";
+    Sleep(1000);
     cout << "~ El croupier tiene " << dealer_score << " puntos ~\n";
     if (player_score == 21) {
+        Sleep(1000);
         cout << "¡Enhorabuena, has ganado!"<<endl;
         return true;
     }
     else if (dealer_score == 21) {
+        Sleep(1000);
         cout << "¡Has perdido!"<<endl;
         return true; 
     }
     else if (dealer_score>21 && player_score <=21) {
+        Sleep(1000);
         cout << "¡Enhorabuena, has ganado!"<<endl;
         return true;
     }
-    else if ((dealer_score > 21 && player_score > 21) || dealer_score == player_score) { //*//
+    else if ((dealer_score > 21 && player_score > 21) || dealer_score == player_score) { //*/
+        Sleep(1000);
         cout << "Empate tecnico"<<endl; return true;
     }
 
     else if (dealer_score < player_score && player_score < 21 && player_wants_hit) {
+        Sleep(1000);
         cout << "¡Seguimos jugando!"<<endl; return false;
     }
     else if (dealer_score > player_score && dealer_score <= 21) {
+        Sleep(1000);
         cout << "¡Has perdido!"<<endl; return true;
     }
     
     else if (dealer_score < player_score && player_score > 21) {
+        Sleep(1000);
         cout << "¡Te has pasado de 21!"<<endl; return true;
     }
     /*else if (player_score > dealer_score && player_score < 21 && !(player_wants_hit)) {
         cout << "Has ganado!"; return true;
     }*/
 }
-
+bool startedGame = false;
 int main() {
 	srand(time(NULL));
-    menu();
+    while(!startedGame) {menu(startedGame);}
+    
     const int MAX_SCORE = 21;
     const int MAX_ACE = 4;
     //const int DEALER_MIN_SCORE = 17;
@@ -234,9 +260,10 @@ int main() {
     repartirCarta(*player_hand, player_score,1);
 	repartirCarta(*dealer_hand, dealer_score,0);
 
-    cout << "~ Tienes " << player_score << " puntos ~\n";
+    cout << "~ Tienes " << player_score << " puntos ~\n";        
+    Sleep(1000);
     cout << "~ El croupier tiene " << dealer_score << " puntos ~\n";
-
+    Sleep(1000);
     cout << "¿Quieres otra carta? (S/N) : ";
     while (1) {
         cin >> card_option;
@@ -271,7 +298,7 @@ int main() {
                     reached21 = checkWin(player_score, dealer_score,player_wants_hit);
                     break;
                 }
-                else if (card_option == "N" || card_option == "n") {
+                else if (card_option == "N" || card_option == "n" || card_option == "no" || card_option == "No") {
                     reached21 = checkWin(player_score, dealer_score,player_wants_hit);
                     player_wants_hit = false;
                     break;
